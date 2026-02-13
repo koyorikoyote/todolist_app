@@ -47,6 +47,7 @@ export interface TodoStore {
     isLoading: boolean;
     error: string | null;
     addTodo: (description: string) => Promise<void>;
+    updateTodo: (id: string, description: string) => Promise<void>;
     toggleTodo: (id: string) => Promise<void>;
     deleteTodo: (id: string) => Promise<void>;
     loadTodos: () => Promise<void>;

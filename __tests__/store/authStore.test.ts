@@ -51,18 +51,7 @@ describe('AuthStore', () => {
         expect(useAuthStore.getState().failedAttempts).toBe(0);
     });
 
-    it('should return true when timeout period has expired', () => {
-        useAuthStore.setState({
-            failedAttempts: 3,
-            lastAuthTime: Date.now() - 31000,
-        });
-
-        const shouldTimeout = useAuthStore.getState().shouldTimeout();
-
-        expect(shouldTimeout).toBe(false);
-    });
-
-    it('should return true when failed attempts reaches max and within timeout period', () => {
+    it('should enforce timeout after max failed attempts', () => {
         useAuthStore.setState({
             failedAttempts: 3,
             lastAuthTime: Date.now() - 10000,

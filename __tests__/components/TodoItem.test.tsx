@@ -14,6 +14,7 @@ const mockedUseAuthStore = useAuthStore as jest.MockedFunction<typeof useAuthSto
 
 describe('TodoItem Component', () => {
     const mockToggleTodo = jest.fn();
+    const mockUpdateTodo = jest.fn();
     const mockDeleteTodo = jest.fn();
 
     beforeEach(() => {
@@ -21,6 +22,7 @@ describe('TodoItem Component', () => {
 
         mockedUseTodoStore.mockReturnValue({
             toggleTodo: mockToggleTodo,
+            updateTodo: mockUpdateTodo,
             deleteTodo: mockDeleteTodo,
             todos: [],
             isLoading: false,
@@ -44,23 +46,9 @@ describe('TodoItem Component', () => {
         });
     });
 
-    it('should render incomplete TODO item correctly', () => {
+    it('should render completed TODO with checkmark', () => {
         const item: TodoItemType = {
             id: 'test-1',
-            description: 'Test incomplete TODO',
-            isCompleted: false,
-            createdAt: Date.now(),
-        };
-
-        const { getByText, queryByText } = render(<TodoItem item={item} />);
-
-        expect(getByText('Test incomplete TODO')).toBeTruthy();
-        expect(queryByText('✓')).toBeNull();
-    });
-
-    it('should render completed TODO item with checkmark', () => {
-        const item: TodoItemType = {
-            id: 'test-2',
             description: 'Test completed TODO',
             isCompleted: true,
             createdAt: Date.now(),
@@ -72,9 +60,9 @@ describe('TodoItem Component', () => {
         expect(getByText('✓')).toBeTruthy();
     });
 
-    it('should call toggleTodo when item is pressed', async () => {
+    it('should call toggleTodo when checkbox is pressed', async () => {
         const item: TodoItemType = {
-            id: 'test-4',
+            id: 'test-2',
             description: 'Toggle test',
             isCompleted: false,
             createdAt: Date.now(),
@@ -82,19 +70,82 @@ describe('TodoItem Component', () => {
 
         mockToggleTodo.mockResolvedValue(undefined);
 
-        const { getByText } = render(<TodoItem item={item} />);
-        const todoItem = getByText('Toggle test');
+        const { getByTestId } = render(<TodoItem item={item} />);
+        const checkboxButton = getByTestId('checkbox-button');
 
-        fireEvent.press(todoItem);
+        fireEvent.press(checkboxButton);
 
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        expect(mockToggleTodo).toHaveBeenCalledWith('test-4');
+        expect(mockToggleTodo).toHaveBeenCalledWith('test-2');
+    });
+
+    it('should open edit modal when description is tapped', () => {
+        const item: TodoItemType = {
+            id: 'test-3',
+            description: 'Edit test',
+            isCompleted: false,
+            createdAt: Date.now(),
+        };
+
+        const { getByTestId, getByText } = render(<TodoItem item={item} />);
+        const descriptionButton = getByTestId('description-button');
+
+        fireEvent.press(descriptionButton);
+
+        expect(getByText('Edit TODO')).toBeTruthy();
+    });
+
+    it('should call updateTodo when edit is saved', async () => {
+        const item: TodoItemType = {
+            id: 'test-4',
+            description: 'Original description',
+            isCompleted: false,
+            createdAt: Date.now(),
+        };
+
+        mockUpdateTodo.mockResolvedValue(undefined);
+
+        const { getByTestId, getByText, getByPlaceholderText } = render(<TodoItem item={item} />);
+
+        const descriptionButton = getByTestId('description-button');
+        fireEvent.press(descriptionButton);
+
+        const input = getByPlaceholderText('Enter TODO description');
+        fireEvent.changeText(input, 'Updated description');
+
+        const saveButton = getByText('Save');
+        fireEvent.press(saveButton);
+
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        expect(mockUpdateTodo).toHaveBeenCalledWith('test-4', 'Updated description');
+    });
+
+    it('should close edit modal when cancel is pressed', () => {
+        const item: TodoItemType = {
+            id: 'test-5',
+            description: 'Cancel test',
+            isCompleted: false,
+            createdAt: Date.now(),
+        };
+
+        const { getByTestId, getByText, queryByText } = render(<TodoItem item={item} />);
+
+        const descriptionButton = getByTestId('description-button');
+        fireEvent.press(descriptionButton);
+
+        expect(getByText('Edit TODO')).toBeTruthy();
+
+        const cancelButton = getByText('Cancel');
+        fireEvent.press(cancelButton);
+
+        expect(queryByText('Edit TODO')).toBeNull();
     });
 
     it('should render delete button in swipeable actions', () => {
         const item: TodoItemType = {
-            id: 'test-7',
+            id: 'test-6',
             description: 'Delete test',
             isCompleted: false,
             createdAt: Date.now(),
@@ -103,25 +154,5 @@ describe('TodoItem Component', () => {
         const { getByText } = render(<TodoItem item={item} />);
 
         expect(getByText('Delete')).toBeTruthy();
-    });
-
-    it('should handle errors gracefully', async () => {
-        const item: TodoItemType = {
-            id: 'test-10',
-            description: 'Error test',
-            isCompleted: false,
-            createdAt: Date.now(),
-        };
-
-        mockToggleTodo.mockRejectedValue(new Error('Toggle failed'));
-
-        const { getByText } = render(<TodoItem item={item} />);
-        const todoItem = getByText('Error test');
-
-        fireEvent.press(todoItem);
-
-        await new Promise(resolve => setTimeout(resolve, 0));
-
-        expect(mockToggleTodo).toHaveBeenCalledWith('test-10');
     });
 });

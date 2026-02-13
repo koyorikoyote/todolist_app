@@ -14,7 +14,7 @@ const SAMPLE_TODOS: Omit<TodoItem, 'id' | 'createdAt'>[] = [
         isCompleted: false,
     },
     {
-        description: 'Task 3: Tap the checkbox to mark tasks complete',
+        description: 'Task 3: Tap the checkbox to toggle completion, tap the text to edit',
         isCompleted: true,
     },
 ];
@@ -57,6 +57,34 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
             set({ todos: updatedTodos, isLoading: false });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to add TODO';
+            set({ error: errorMessage, isLoading: false });
+            throw error;
+        }
+    },
+
+    updateTodo: async (id: string, description: string): Promise<void> => {
+        const trimmedDescription = description.trim();
+
+        // Validate description before updating
+        if (trimmedDescription.length === 0) {
+            throw new Error('Description cannot be empty');
+        }
+
+        if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
+            throw new Error(`Description cannot exceed ${MAX_DESCRIPTION_LENGTH} characters`);
+        }
+
+        set({ isLoading: true, error: null });
+
+        try {
+            const updatedTodos = get().todos.map(todo =>
+                todo.id === id ? { ...todo, description: trimmedDescription } : todo
+            );
+
+            await storageService.saveTodos(updatedTodos);
+            set({ todos: updatedTodos, isLoading: false });
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update TODO';
             set({ error: errorMessage, isLoading: false });
             throw error;
         }

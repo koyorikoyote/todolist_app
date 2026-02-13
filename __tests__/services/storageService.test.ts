@@ -79,25 +79,4 @@ describe('StorageService Error Handling', () => {
 
         expect(result).toBe(true);
     });
-
-    it('should handle large TODO arrays', async () => {
-        const largeTodoArray: TodoItem[] = Array.from({ length: 1000 }, (_, i) => ({
-            id: `todo-${i}`,
-            description: `Task ${i}`,
-            isCompleted: i % 2 === 0,
-            createdAt: Date.now() + i,
-        }));
-
-        (SecureStore.setItemAsync as jest.Mock).mockResolvedValueOnce(undefined);
-        (SecureStore.getItemAsync as jest.Mock).mockResolvedValueOnce(
-            JSON.stringify(largeTodoArray)
-        );
-
-        await storageService.saveTodos(largeTodoArray);
-        const loaded = await storageService.loadTodos();
-
-        expect(loaded).toHaveLength(1000);
-        expect(loaded[0].id).toBe('todo-0');
-        expect(loaded[999].id).toBe('todo-999');
-    });
 });

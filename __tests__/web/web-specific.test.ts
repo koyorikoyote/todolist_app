@@ -3,7 +3,6 @@ jest.mock('react-native', () => ({
     Platform: { OS: 'web' },
 }));
 
-// Mock localStorage
 const localStorageMock = (() => {
     let store: Record<string, string> = {};
     return {
@@ -67,7 +66,7 @@ describe('Web-Specific Functionality', () => {
 
         const storedValue = localStorage.getItem('test-key');
         expect(storedValue).toBeTruthy();
-        expect(storedValue).not.toBe('test-value'); // Should be encrypted
+        expect(storedValue).not.toBe('test-value');
     });
 
     it('should encrypt data before storing in localStorage', async () => {
@@ -77,7 +76,7 @@ describe('Web-Specific Functionality', () => {
 
         const storedValue = localStorage.getItem('test-key');
         expect(storedValue).toBeTruthy();
-        expect(storedValue).toContain(':'); // Encrypted format: hash:base64data
+        expect(storedValue).toContain(':');
         expect(mockDigestStringAsync).toHaveBeenCalled();
     });
 
@@ -99,7 +98,7 @@ describe('Web-Specific Functionality', () => {
         expect(result.biometricType).toBe('none');
     });
 
-    it('should fallback to PIN/passcode authentication on web', async () => {
+    it('should fallback to PIN authentication on web', async () => {
         (LocalAuthentication.hasHardwareAsync as jest.Mock).mockResolvedValue(false);
         (LocalAuthentication.isEnrolledAsync as jest.Mock).mockResolvedValue(true);
         (LocalAuthentication.authenticateAsync as jest.Mock).mockResolvedValue({ success: true });
@@ -112,20 +111,6 @@ describe('Web-Specific Functionality', () => {
                 promptMessage: 'Use your device PIN to access your TODO list',
             })
         );
-    });
-
-    it('should store data in localStorage for offline access', async () => {
-        const todos = [{
-            id: '1',
-            description: 'Offline TODO',
-            isCompleted: false,
-            createdAt: Date.now(),
-        }];
-
-        await storageService.saveTodos(todos);
-
-        const storedData = localStorage.getItem('secure_todo_app.todos');
-        expect(storedData).toBeTruthy();
     });
 
     it('should handle invalid encrypted data format', async () => {

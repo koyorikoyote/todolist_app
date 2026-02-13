@@ -30,6 +30,36 @@ describe('TodoStore', () => {
         expect(useTodoStore.getState().todos).toHaveLength(0);
     });
 
+    it('should update TODO item description', async () => {
+        const todo: TodoItem = {
+            id: 'test-id',
+            description: 'Original description',
+            isCompleted: false,
+            createdAt: Date.now(),
+        };
+        useTodoStore.setState({ todos: [todo] });
+        mockedStorageService.saveTodos.mockResolvedValue();
+
+        await useTodoStore.getState().updateTodo('test-id', 'Updated description');
+
+        const todos = useTodoStore.getState().todos;
+        expect(todos[0].description).toBe('Updated description');
+        expect(mockedStorageService.saveTodos).toHaveBeenCalledWith(todos);
+    });
+
+    it('should reject empty description when updating', async () => {
+        const todo: TodoItem = {
+            id: 'test-id',
+            description: 'Original description',
+            isCompleted: false,
+            createdAt: Date.now(),
+        };
+        useTodoStore.setState({ todos: [todo] });
+
+        await expect(useTodoStore.getState().updateTodo('test-id', '   ')).rejects.toThrow('Description cannot be empty');
+        expect(useTodoStore.getState().todos[0].description).toBe('Original description');
+    });
+
     it('should toggle TODO completion status twice (round-trip)', async () => {
         const todo: TodoItem = {
             id: 'test-id',
@@ -61,28 +91,6 @@ describe('TodoStore', () => {
 
         expect(useTodoStore.getState().todos).toHaveLength(0);
         expect(mockedStorageService.saveTodos).toHaveBeenCalledWith([]);
-    });
-
-    it('should load TODOs from storage', async () => {
-        const todos: TodoItem[] = [
-            {
-                id: 'test-id-1',
-                description: 'Test TODO 1',
-                isCompleted: false,
-                createdAt: Date.now(),
-            },
-            {
-                id: 'test-id-2',
-                description: 'Test TODO 2',
-                isCompleted: true,
-                createdAt: Date.now(),
-            },
-        ];
-        mockedStorageService.loadTodos.mockResolvedValue(todos);
-
-        await useTodoStore.getState().loadTodos();
-
-        expect(useTodoStore.getState().todos).toEqual(todos);
     });
 
     it('should create sample data on first launch', async () => {

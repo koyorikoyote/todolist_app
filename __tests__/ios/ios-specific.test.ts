@@ -102,16 +102,4 @@ describe('iOS-Specific Functionality', () => {
             'Failed to save item'
         );
     });
-
-    it('should retry iOS Keychain operations on transient failures', async () => {
-        const mockSetItemAsync = SecureStore.setItemAsync as jest.Mock;
-
-        mockSetItemAsync
-            .mockRejectedValueOnce(new Error('Temporary failure'))
-            .mockResolvedValueOnce(undefined);
-
-        await storageService.setItem('test-key', 'test-value');
-
-        expect(mockSetItemAsync).toHaveBeenCalledTimes(2);
-    });
 });

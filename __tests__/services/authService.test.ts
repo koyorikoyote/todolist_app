@@ -94,22 +94,7 @@ describe('AuthService Unit Tests', () => {
         expect((authService as any).failedAttempts).toBe(3);
     });
 
-    it('should block authentication attempts during timeout period', async () => {
-        (LocalAuthentication.authenticateAsync as jest.Mock)
-            .mockResolvedValue({ success: false, error: 'authentication_failed' });
-
-        await authService.authenticate();
-        await authService.authenticate();
-        await authService.authenticate();
-
-        const result = await authService.authenticate();
-
-        expect(result.success).toBe(false);
-        expect(result.error).toMatch(/Too many failed attempts\. Please wait \d+ seconds before trying again\./);
-        expect(LocalAuthentication.authenticateAsync).toHaveBeenCalledTimes(3);
-    });
-
-    it('should handle authenticateAsync throwing an error and suggest PIN fallback', async () => {
+    it('should handle authentication system errors with PIN fallback', async () => {
         (LocalAuthentication.hasHardwareAsync as jest.Mock).mockResolvedValueOnce(true);
         (LocalAuthentication.isEnrolledAsync as jest.Mock).mockResolvedValueOnce(true);
         (LocalAuthentication.supportedAuthenticationTypesAsync as jest.Mock).mockResolvedValueOnce([

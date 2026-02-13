@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { useTodoStore } from '../store/todoStore';
 import { useAuthStore } from '../store/authStore';
 import { TodoItem as TodoItemType } from '../types';
+import EditTodoModal from './EditTodoModal';
 
 const YELLOW_PRIMARY = '#FFD700';
 
@@ -14,7 +15,8 @@ interface TodoItemProps {
 
 export default function TodoItem({ item }: TodoItemProps) {
   const swipeableRef = useRef<Swipeable>(null);
-  const { toggleTodo, deleteTodo } = useTodoStore();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const { toggleTodo, updateTodo, deleteTodo } = useTodoStore();
   const { isAuthenticated } = useAuthStore();
 
   const handleToggle = async () => {
@@ -23,6 +25,19 @@ export default function TodoItem({ item }: TodoItemProps) {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
       await toggleTodo(item.id);
+    } catch {
+      // Error handled by store
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditModalVisible(true);
+  };
+
+  const handleSaveEdit = async (newDescription: string) => {
+    try {
+      await updateTodo(item.id, newDescription);
+      setIsEditModalVisible(false);
     } catch {
       // Error handled by store
     }
@@ -74,38 +89,55 @@ export default function TodoItem({ item }: TodoItemProps) {
   };
 
   return (
-    <Swipeable
-      ref={swipeableRef}
-      renderRightActions={renderRightActions}
-      onSwipeableOpen={handleSwipeableOpen}
-      overshootRight={true}
-      rightThreshold={120}
-      friction={2}
-    >
-      <TouchableOpacity 
-        style={styles.container}
-        onPress={handleToggle}
-        activeOpacity={1}
+    <>
+      <Swipeable
+        ref={swipeableRef}
+        renderRightActions={renderRightActions}
+        onSwipeableOpen={handleSwipeableOpen}
+        overshootRight={true}
+        rightThreshold={120}
+        friction={2}
       >
-        <View style={styles.checkbox}>
-          <View style={[
-            styles.checkboxInner,
-            item.isCompleted && styles.checkboxChecked
-          ]}>
-            {item.isCompleted ? (
-              <Text style={styles.checkmark}>✓</Text>
-            ) : null}
-          </View>
-        </View>
+        <View style={styles.container}>
+          <TouchableOpacity 
+            style={styles.checkboxTouchArea}
+            onPress={handleToggle}
+            activeOpacity={0.7}
+            testID="checkbox-button"
+          >
+            <View style={[
+              styles.checkboxInner,
+              item.isCompleted && styles.checkboxChecked
+            ]}>
+              {item.isCompleted ? (
+                <Text style={styles.checkmark}>✓</Text>
+              ) : null}
+            </View>
+          </TouchableOpacity>
 
-        <Text style={[
-          styles.description,
-          item.isCompleted && styles.descriptionCompleted
-        ]}>
-          {item.description}
-        </Text>
-      </TouchableOpacity>
-    </Swipeable>
+          <TouchableOpacity
+            style={styles.descriptionContainer}
+            onPress={handleEdit}
+            activeOpacity={0.7}
+            testID="description-button"
+          >
+            <Text style={[
+              styles.description,
+              item.isCompleted && styles.descriptionCompleted
+            ]}>
+              {item.description}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Swipeable>
+
+      <EditTodoModal
+        visible={isEditModalVisible}
+        initialDescription={item.description}
+        onSave={handleSaveEdit}
+        onCancel={() => setIsEditModalVisible(false)}
+      />
+    </>
   );
 }
 
@@ -119,14 +151,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
   },
-  checkbox: {
-    marginRight: 12,
-    padding: 4,
+  checkboxTouchArea: {
+    padding: 8,
+    marginRight: 8,
   },
   checkboxInner: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#CCC',
     justifyContent: 'center',
@@ -138,12 +170,15 @@ const styles = StyleSheet.create({
     borderColor: YELLOW_PRIMARY,
   },
   checkmark: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
   },
-  description: {
+  descriptionContainer: {
     flex: 1,
+    paddingVertical: 4,
+  },
+  description: {
     fontSize: 16,
     color: '#333',
     lineHeight: 22,

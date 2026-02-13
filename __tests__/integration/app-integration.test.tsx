@@ -46,7 +46,7 @@ describe('App Integration Tests', () => {
     (authService.authenticate as jest.Mock).mockResolvedValue({ success: true });
   });
 
-  it('should redirect to login when not authenticated and accessing protected route', async () => {
+  it('should redirect to login when not authenticated', async () => {
     (useSegments as jest.Mock).mockReturnValue(['(tabs)']);
 
     render(<AuthGuard><></></AuthGuard>);
