@@ -26,6 +26,11 @@ import { TodoItem } from '../../types';
 describe('StorageService Error Handling', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, 'error').mockImplementation(() => { });
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should throw error when SecureStore.setItemAsync fails', async () => {

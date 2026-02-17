@@ -24,6 +24,7 @@ describe('App Integration Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => { });
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (useSegments as jest.Mock).mockReturnValue([]);
 
@@ -123,5 +124,9 @@ describe('App Integration Tests', () => {
     ).rejects.toThrow('Storage failed');
 
     expect(useTodoStore.getState().error).toBe('Storage failed');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 });

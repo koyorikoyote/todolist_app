@@ -18,8 +18,13 @@ import * as LocalAuthentication from 'expo-local-authentication';
 describe('AuthService Unit Tests', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, 'error').mockImplementation(() => { });
         (authService as any).failedAttempts = 0;
         (authService as any).timeoutUntil = null;
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should return available with facial recognition when Face ID is supported', async () => {

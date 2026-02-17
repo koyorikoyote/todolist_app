@@ -9,6 +9,11 @@ describe('EditTodoModal Component', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, 'error').mockImplementation(() => { });
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     it('should render modal with initial description', () => {

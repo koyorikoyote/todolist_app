@@ -12,7 +12,7 @@ const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
 
 describe('ErrorBoundary', () => {
   beforeEach(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => { });
   });
 
   afterEach(() => {
@@ -62,12 +62,11 @@ describe('ErrorBoundary', () => {
 
     const tryAgainButton = getByText('Try Again');
     expect(tryAgainButton).toBeTruthy();
-    
+
     fireEvent.press(tryAgainButton);
   });
 
   it('should log error details in development mode', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     render(
       <ErrorBoundary>
@@ -75,6 +74,6 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalled();
   });
 });

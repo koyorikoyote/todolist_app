@@ -9,8 +9,15 @@ const mockedStorageService = storageService as jest.Mocked<typeof storageService
 describe('TodoStore', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, 'error').mockImplementation(() => { });
         useTodoStore.setState({ todos: [], isLoading: false, error: null });
     });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+
 
     it('should add a new TODO item with valid description', async () => {
         const description = 'Test TODO';

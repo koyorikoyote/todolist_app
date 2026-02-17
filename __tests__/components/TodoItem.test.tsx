@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import TodoItem from '../../components/TodoItem';
 import { useTodoStore } from '../../store/todoStore';
 import { useAuthStore } from '../../store/authStore';
@@ -75,9 +75,9 @@ describe('TodoItem Component', () => {
 
         fireEvent.press(checkboxButton);
 
-        await new Promise(resolve => setTimeout(resolve, 0));
-
-        expect(mockToggleTodo).toHaveBeenCalledWith('test-2');
+        await waitFor(() => {
+            expect(mockToggleTodo).toHaveBeenCalledWith('test-2');
+        });
     });
 
     it('should open edit modal when description is tapped', () => {
@@ -117,9 +117,9 @@ describe('TodoItem Component', () => {
         const saveButton = getByText('Save');
         fireEvent.press(saveButton);
 
-        await new Promise(resolve => setTimeout(resolve, 0));
-
-        expect(mockUpdateTodo).toHaveBeenCalledWith('test-4', 'Updated description');
+        await waitFor(() => {
+            expect(mockUpdateTodo).toHaveBeenCalledWith('test-4', 'Updated description');
+        });
     });
 
     it('should close edit modal when cancel is pressed', () => {
